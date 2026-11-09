@@ -16,3 +16,5 @@ Windows secrets 集成任务安装校验 SHA-256 的原生 fnox 1.46.0 与 age 1
 跨平台回归还覆盖本地 Dolt remote 的 file URI 编码、报告的 protocol 引用、入口链接诊断，以及 verify 的失败阻断、工作目录和暂存检查。verify 测试使用同一 Python 解释器执行契约脚本，项目的 verify 命令仍交由本机默认 shell 执行。
 
 Windows Beads 集成任务安装校验 SHA-256 的原生 bd 1.3.2，验收初始化、模板迁移、发布恢复、worktree 数据库和并发认领，拒绝跳过。Dolt 嵌套 Git 缓存路径较长，测试进程通过 GIT_CONFIG_COUNT 向子进程启用 core.longpaths，不修改用户或机器的 Git 配置。
+
+运行产物清理使用文件系统编码解码 Git 的 NUL 分隔路径，保留中文目录和 Linux 非 UTF-8 文件名的跟踪保护。回归使用真实 Git index，并模拟 CP1252/GBK 管道默认编码；Windows 门禁另在关闭 UTF-8 模式时运行同一回归，拒绝跳过。

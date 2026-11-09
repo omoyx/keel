@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import tempfile
+import unittest
 from unittest.mock import patch
 
 from keel import assets, cli, runtime
@@ -579,3 +581,34 @@ if os.name == "nt":
                     with runtime.directory_guard(Path(r"\\server\share\run")):
                         self.fail("network path accepted")
             create.assert_not_called()
+
+
+class TestRuntimePathEncoding(unittest.TestCase):
+    def test_tracked_unicode_paths_remain_protected_with_legacy_pipe_defaults(self):
+        with tempfile.TemporaryDirectory(prefix="keel-runtime-encoding-") as directory:
+            root = Path(directory).resolve()
+            run(root, "git", "init", "-q")
+            target = root / "work/.local/中文/run"
+            target.mkdir(parents=True)
+            names = ["valuable.txt"]
+            if sys.platform.startswith("linux"):
+                names.append(os.fsdecode(b"valuable-\xff.txt"))
+            old = time.time() - 60 * 86400
+            for name in names:
+                tracked = target / name
+                tracked.write_bytes(b"valuable fixture")
+                os.utime(tracked, (old, old))
+                run(root, "git", "add", "-f", "--", str(tracked))
+            runtime.write_json(target / runtime.STATE, {
+                "version": 1, "state": "disposable", "started_at": old - 100,
+                "completed_at": old + 10, "owner": {"pid": 2147483647, "started": "fixture"}})
+            for encoding in ("cp1252", "gbk", "utf-8"):
+                with self.subTest(encoding=encoding), patch.object(
+                        subprocess, "_text_encoding", return_value=encoding), patch.object(
+                        runtime, "process_status", return_value="exited"):
+                    retained = runtime.retained_paths(root)
+                    for name in names:
+                        self.assertIn(target / name, retained)
+                    lines = runtime.clean(root, ["中文/run"], days=0, apply=True)
+                    self.assertIn("Git 跟踪", " ".join(lines))
+                    self.assertTrue(all((target / name).is_file() for name in names))

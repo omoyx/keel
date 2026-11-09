@@ -143,10 +143,11 @@ def retained_paths(root: Path) -> list[Path]:
             raise LocalError("资产清单路径无效，未清理；先运行 keel check 修复")
         paths.append((root / entry["path"]).resolve())
     tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--cached", "--", LOCAL_PATH],
-                             capture_output=True, text=True)
+                             capture_output=True)
     if tracked.returncode != 0:
         raise LocalError("无法确认 Git 跟踪状态，未清理")
-    paths += [(root / p).resolve() for p in filter(None, tracked.stdout.split("\0"))]
+    # Git -z emits filesystem paths, not locale-encoded display text.
+    paths += [(root / os.fsdecode(p)).resolve() for p in filter(None, tracked.stdout.split(b"\0"))]
     return paths
 
 

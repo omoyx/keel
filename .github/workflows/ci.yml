@@ -105,6 +105,23 @@ jobs:
           tests.test_entrypoints.TestEntrypointProtection.test_entrypoint_links_ignore_examples_and_check_actual_local_targets
           tests.test_layout.TestVerify
 
+      - name: Check runtime tracking protection without UTF-8 mode
+        if: runner.os == 'Windows'
+        working-directory: ${{ needs.source.outputs.directory }}
+        env:
+          PYTHONUTF8: "0"
+          PYTHONIOENCODING: utf-8
+        shell: python
+        run: |
+          import sys
+          from pathlib import Path
+          import unittest
+          assert sys.flags.utf8_mode == 0, 'UTF-8 mode must be disabled'
+          sys.path.insert(0, str(Path.cwd()))
+          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_runtime.TestRuntimePathEncoding')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(0 if result.wasSuccessful() and not result.skipped else 1)
+
   beads-windows:
     name: Windows Beads integration (${{ matrix.python }})
     needs: source
