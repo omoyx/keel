@@ -11,7 +11,9 @@ fetch_tool() {
   mkdir -p "$unpack"
   printf 'Fetching pinned integration tool: %s\n' "$name"
   curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
-    --retry 3 --output "$archive" "$url"
+    --connect-timeout 20 --max-time 180 \
+    --retry 5 --retry-delay 15 --retry-max-time 180 \
+    --header 'Cache-Control: no-cache' --output "$archive" "$url"
   printf '%s  %s\n' "$digest" "$archive" | sha256sum --check --status
   printf 'Verified SHA-256: %s\n' "$name"
   tar -xzf "$archive" -C "$unpack"
