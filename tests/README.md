@@ -18,3 +18,5 @@ Windows secrets 集成任务安装校验 SHA-256 的原生 fnox 1.46.0 与 age 1
 Windows Beads 集成任务安装校验 SHA-256 的原生 bd 1.3.2，验收初始化、模板迁移、发布恢复、worktree 数据库和并发认领，拒绝跳过。Dolt 嵌套 Git 缓存路径较长，测试进程通过 GIT_CONFIG_COUNT 向子进程启用 core.longpaths，不修改用户或机器的 Git 配置。
 
 运行产物清理使用文件系统编码解码 Git 的 NUL 分隔路径，保留中文目录和 Linux 非 UTF-8 文件名的跟踪保护。回归使用真实 Git index，并模拟 CP1252/GBK 管道默认编码；Windows 门禁另在关闭 UTF-8 模式时运行同一回归，拒绝跳过。
+
+GitHub 托管 runner 的匿名资产 API 失败时，工具安装改用已固定版本的 release 下载地址；两个入口都必须匹配同一个 SHA-256，摘要不符或下载均失败时停止，不执行未验证内容。此回退只用于 GitHub CI，不改变开发机的镜像与代理约定。
