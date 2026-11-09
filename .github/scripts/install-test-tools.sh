@@ -9,9 +9,11 @@ fetch_tool() {
   local name="$1" url="$2" digest="$3" binary="$4"
   local archive="$tool_root/$name.tar.gz" unpack="$tool_root/$name"
   mkdir -p "$unpack"
+  printf 'Fetching pinned integration tool: %s\n' "$name"
   curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
     --retry 3 --output "$archive" "$url"
   printf '%s  %s\n' "$digest" "$archive" | sha256sum --check --status
+  printf 'Verified SHA-256: %s\n' "$name"
   tar -xzf "$archive" -C "$unpack"
   install -m 755 "$unpack/$binary" "$tool_root/bin/$(basename "$binary")"
 }
